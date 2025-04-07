@@ -1,0 +1,36 @@
+[project]
+name = "event-camera-simulator"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "cython>=3.0.12",
+    "numpy>=2.2.4",
+    "opencv-python>=4.11.0.86",
+    "setuptools>=78.0.2",
+    "tqdm>=4.67.1",
+    "dsi",
+    "brotli>=1.1.0",
+    "matplotlib>=3.10.1",
+    "pandas>=2.2.3",
+    "bpy>=4.4.0",
+    "event-stream>=1.6.3",
+]
+
+[tool.uv.workspace]
+members = ["extensions/dsi"]
+
+[tool.uv.sources]
+iebcs = { workspace = true }
+dsi = { workspace = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/uv_workspaces"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+test = "uv_workspaces.test:main"
