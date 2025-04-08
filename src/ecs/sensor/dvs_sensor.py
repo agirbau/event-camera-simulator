@@ -1,8 +1,10 @@
 # Damien JOUBERT 17-01-2020
+import logging
 import numpy as np
 import cv2
-from event_buffer import EventBuffer
-from tqdm import tqdm
+from ecs.lib import EventBuffer
+from tqdm.auto import tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
 import dsi
 
 # Global variables
@@ -19,6 +21,7 @@ NOISE_MEASURE = 2  # Pixels have a noise distribution measured in one lighting c
 
 class DvsSensor:
     """ This structure add the parameters needed to simulate the DVS sensor """
+    logger = logging.getLogger()
     shape = (50, 50)  # (y, x)
     m_th_pos = 0.2  # Mean positive sensitivity (%)
     m_th_neg = -0.2  # Mean negative sensitivity (%)
@@ -118,12 +121,12 @@ class DvsSensor:
         noise_pos = np.load(filename_noise_pos)
         noise_pos = np.reshape(noise_pos, (noise_pos.shape[0] * noise_pos.shape[1], noise_pos.shape[2]))
         if len(noise_pos) == 0:
-            print(filename_noise_pos, " is not correct")
+            self.logger.debug(filename_noise_pos, " is not correct")
             return
         noise_neg = np.load(filename_noise_neg)
         noise_neg = np.reshape(noise_neg, (noise_neg.shape[0] * noise_neg.shape[1], noise_neg.shape[2]))
         if len(noise_neg) == 0:
-            print(filename_noise_neg, " is not correct")
+            self.logger.debug(filename_noise_neg, " is not correct")
             return
         # Load histogram and Update next noise event
         self.bgn_hist_pos = np.zeros((self.shape[0] * self.shape[1], 72), dtype=float)
@@ -154,10 +157,11 @@ class DvsSensor:
                                                self.bgn_hist_neg.shape[1],
                                                axis=2)
 
-        for x in tqdm(range(0, self.shape[1], 1), desc="Noise Init"):
-            for y in range(0, self.shape[0], 1):
-                self.bgn_pos_next[y, x] = np.uint64(self.get_next_noise(x, y, 1) * np.random.uniform(0, 1))
-                self.bgn_neg_next[y, x] = np.uint64(self.get_next_noise(x, y, 0) * np.random.uniform(0, 1))
+        with logging_redirect_tqdm():
+            for x in tqdm(range(0, self.shape[1], 1), desc="Noise Init"):
+                for y in range(0, self.shape[0], 1):
+                    self.bgn_pos_next[y, x] = np.uint64(self.get_next_noise(x, y, 1) * np.random.uniform(0, 1))
+                    self.bgn_neg_next[y, x] = np.uint64(self.get_next_noise(x, y, 0) * np.random.uniform(0, 1))
 
     def init_tension(self):
         """ Initialize the thresholds of the comparators
@@ -174,14 +178,14 @@ class DvsSensor:
             img: image whose greylevel corresponds to a radiometric value
         """
         if img.shape[1] != self.shape[1] or img.shape[0] != self.shape[0]:
-            print("Error: the size of the image doesn't match with the sensor ")
+            self.logger.debug("Error: the size of the image doesn't match with the sensor ")
             return
         if len(img.shape) == 3 and img.shape[2] == 3:
-            print("Convert RGB image to Grey CV_RGB2LAB")
+            self.logger.debug("Convert RGB image to Grey CV_RGB2LAB")
             img = cv2.cvtColor(img, cv2.COLOR_RGB2Lab)[:, :, 0]
         ind = np.where(img > 0)
         if len(ind[0])== 0:
-            print("ERROR: init_image: flux image with zeros data")
+            self.logger.debug("ERROR: init_image: flux image with zeros data")
             return
         self.last_v[ind] = np.log(img[ind])
         self.cur_v[ind] = np.log(img[ind])
@@ -198,10 +202,10 @@ class DvsSensor:
                   log_eps: constant to avoid log(0)
         """
         if img.shape[1] != self.shape[1] or img.shape[0] != self.shape[0]:
-            print("Error: the size of the image doesn't match with the sensor ")
+            self.logger.debug("Error: the size of the image doesn't match with the sensor ")
             return
         if len(img.shape) == 3 and img.shape[2] == 3:
-            print("Convert RGB image to Grey CV_RGB2LAB")
+            self.logger.debug("Convert RGB image to Grey CV_RGB2LAB")
             img = cv2.cvtColor(img, cv2.COLOR_RGB2Lab)[:, :, 0]
         if log_eps > 0:
             self.last_v = np.log(img + log_eps)
@@ -340,17 +344,17 @@ class DvsSensor:
             self.list_v.append(np.array(self.cur_v))
             self.list_v_rst.append(np.array(self.last_v))
         if img.shape[1] != self.shape[1] or img.shape[0] != self.shape[0]:
-            print("Error: the size of the image doesn't match with the sensor ")
+            self.logger.debug("Error: the size of the image doesn't match with the sensor ")
             return
         if len(img.shape) == 3 and img.shape[2] == 3:
-            print("Convert RGB image to Lab and use L")
+            self.logger.debug("Convert RGB image to Lab and use L")
             img = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
             img = img[:, :, 0]
         # Convert in the log domain
         img_d = np.array(img, dtype=np.double)
         ind = np.where(img > 0)
         if len(ind[0]) == 0:
-            print("ERROR: update: flux image with only zeros data")
+            self.logger.debug("ERROR: update: flux image with only zeros data")
             return
         img_d[ind] = np.log(img[ind])
         ind = np.where(img_d != 0)
@@ -423,7 +427,7 @@ class DvsSensor:
             self.list_v_rst.append(np.array(self.last_v))
         pk_end = EventBuffer(0)
         pk_end.merge(pk, pk_noise)
-        if debug: print('{} Noise event, {} signal events'.format(pk_noise.i, pk.i))
+        if debug: self.logger.debug('{} Noise event, {} signal events'.format(pk_noise.i, pk.i))
         return pk_end
 
     def update_esim(self, im, time, log_eps=-1):
@@ -471,7 +475,7 @@ class DvsSensor:
                                 ev.add(t, y, x, pol)
                                 self.cur_ref[y, x] = t
                             else:
-                                print("Dropping event because time since last event ",
+                                self.logger.debug("Dropping event because time since last event ",
                                       str(dt), " ns) < refractory period (", str(self.ref), " us).")
                             self.last_v[y, x] = curr_cross
                         else:

@@ -2,8 +2,6 @@ import numpy
 from setuptools import setup, Extension
 from Cython.Build import cythonize
 
-print('Test1')
-
 c_ext = Extension("dsi",
                   sources=["./src/cpp/code.cpp"],
                   language="c++",

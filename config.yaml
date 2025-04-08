@@ -1,0 +1,14 @@
+log_level: INFO
+render:
+  steps: 100
+  frame_delay: 1000 
+  scene_image: scene_image.png
+  event_file: event_cube.dat
+  event_video_file: events.avi
+  video_file: scene.avi
+  blender_file: scene.blend
+  out: temp
+  input: data
+  noise_pos: noise_pos_161lux.npy
+  noise_neg: noise_neg_161lux.npy
+  texture: img/CheeseTextureImg.png

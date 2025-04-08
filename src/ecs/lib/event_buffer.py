@@ -1,7 +1,9 @@
+import logging
 import numpy as np
 
 class EventBuffer():
     """ Structure to handle a buffer of dvs events """
+    logger = logging.getLogger()
     x = 0  # Array of x valuesd
     y = 0  # Array of y values
     ts = 0  # Array of timestamps values (us)
@@ -97,19 +99,21 @@ class EventBuffer():
         self.p = np.delete(self.p, ind)
 
     def increase_ev(self, ev):
-        """ Increase the event buffer with anotehr event buffer
+        """ Increase the event buffer with another event buffer
             If ev can be inserted into self, ev inserted, if not, increase the size of a buffer to original
             self.shape[0] + ev.shape[0]
             Args:
                 ev: the EventBuffer added
             """
-        if len(self.x) > 0 and not ev is None:
+        if len(self.x) >= 0 and not ev is None:
             if self.i + ev.x.shape[0] > self.x.shape[0] - 1:
                 prev_shape = self.x.shape[0]
+
                 x = np.zeros(prev_shape + ev.ts.shape[0], dtype=np.uint16)
                 y = np.zeros(prev_shape + ev.ts.shape[0], dtype=np.uint16)
                 p = np.zeros(prev_shape + ev.ts.shape[0], dtype=np.uint8)
                 ts = np.zeros(prev_shape + ev.ts.shape[0], dtype=np.uint64)
+
                 x[:self.i] = self.x[:self.i]
                 y[:self.i] = self.y[:self.i]
                 p[:self.i] = self.p[:self.i]
@@ -128,6 +132,8 @@ class EventBuffer():
                 self.p[self.i:self.i + ev.i] = ev.p[:ev.i]
                 self.ts[self.i:self.i + ev.i] = ev.ts[:ev.i]
             self.i += ev.i
+        else:
+            self.logger.warning("Could not merge event buffers")
 
     def copy(self, i1, ep, i2):
         """ Copy the i2 th event of the EventBuffer ep in to the i1 th position
@@ -210,9 +216,12 @@ class EventBuffer():
             self.p[self.i:self.i+s] = p
             self.i += s
 
-    def write(self, filename, event_type='dvs', width=None, height=None):
-        """ Write the events into a .dat or .es file
-            Args:
-                filename: path of the file
-        """
-        # NOT IMPLEMENTED
+    def export(self):
+        self.sort()
+
+        ts = self.ts[:self.i]
+        x = self.x[:self.i]
+        y = self.y[:self.i]
+        p = self.p[:self.i]
+
+        return ts, x, y, p
