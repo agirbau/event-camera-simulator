@@ -133,6 +133,8 @@ class EventBuffer():
                 self.ts[self.i:self.i + ev.i] = ev.ts[:ev.i]
             self.i += ev.i
         else:
+            print(self.x)
+            print(ev)
             self.logger.warning("Could not merge event buffers")
 
     def copy(self, i1, ep, i2):

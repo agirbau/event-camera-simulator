@@ -22,7 +22,12 @@ NOISE_MEASURE = 2  # Pixels have a noise distribution measured in one lighting c
 class DvsSensor:
     """ This structure add the parameters needed to simulate the DVS sensor """
     logger = logging.getLogger()
-    shape = (50, 50)  # (y, x)
+
+    # shape = (50, 50)  # (y, x) # TODO: WTF is going on here? Check the assignment: (self.shape[1], self.shape[0]) in the init function 
+    # shape = (640, 360)
+    shape = (360, 640) # (y, x)
+
+
     m_th_pos = 0.2  # Mean positive sensitivity (%)
     m_th_neg = -0.2  # Mean negative sensitivity (%)
     m_th_noise = 0.02  # Mean reset noise standard deviation of the transistor (%)
@@ -64,7 +69,7 @@ class DvsSensor:
             Args:
                 x, y: size of the imager
         """
-        self.shape = (x, y)
+        self.shape = (y, x)
 
     def set_dvs_sensor(self, th_pos, th_neg, th_n, lat, tau, jit, bgn):
         """ Set the properties of the DVS sensor
@@ -89,7 +94,11 @@ class DvsSensor:
         self.m_bgn_pos_per = np.uint64(1e6 / bgn)
         self.m_bgn_neg_per = np.uint64(1e6 / bgn)
         self.m_bgn_neg = bgn
-        self.shape = (self.shape[1], self.shape[0])
+        
+        self.shape = (self.shape[0], self.shape[1])
+        # self.shape = (self.shape[0], self.shape[1])
+
+
         self.last_v = np.zeros(self.shape, dtype=np.double)
         self.cur_v = np.zeros(self.shape, dtype=np.double)
         self.cur_ref = np.zeros(self.shape, dtype=np.uint64)
@@ -158,6 +167,7 @@ class DvsSensor:
                                                axis=2)
 
         with logging_redirect_tqdm():
+            # TODO: Switched indices self.shape[0]=x
             for x in tqdm(range(0, self.shape[1], 1), desc="Noise Init"):
                 for y in range(0, self.shape[0], 1):
                     self.bgn_pos_next[y, x] = np.uint64(self.get_next_noise(x, y, 1) * np.random.uniform(0, 1))
@@ -178,7 +188,7 @@ class DvsSensor:
             img: image whose greylevel corresponds to a radiometric value
         """
         if img.shape[1] != self.shape[1] or img.shape[0] != self.shape[0]:
-            self.logger.debug("Error: the size of the image doesn't match with the sensor ")
+            self.logger.debug(f"Error: the size of the image doesn't match with the sensor: {img.shape}, {self.shape}")
             return
         if len(img.shape) == 3 and img.shape[2] == 3:
             self.logger.debug("Convert RGB image to Grey CV_RGB2LAB")
@@ -286,7 +296,7 @@ class DvsSensor:
                 the delay of the next noise event in us
         """
         val = np.random.uniform(0, 1)
-        pos = y * self.shape[0] + x
+        pos = y * self.shape[1] + x # HACK? Switch to 1
         if pol == 1:
             ind = np.where(self.bgn_hist_pos[pos, :] >= val)
             next = FREQ[ind[0][0]]
@@ -344,7 +354,7 @@ class DvsSensor:
             self.list_v.append(np.array(self.cur_v))
             self.list_v_rst.append(np.array(self.last_v))
         if img.shape[1] != self.shape[1] or img.shape[0] != self.shape[0]:
-            self.logger.debug("Error: the size of the image doesn't match with the sensor ")
+            self.logger.debug(f"Error: the size of the image doesn't match with the sensor: {img.shape}, {self.shape}")
             return
         if len(img.shape) == 3 and img.shape[2] == 3:
             self.logger.debug("Convert RGB image to Lab and use L")
@@ -450,6 +460,7 @@ class DvsSensor:
             return
         ev = EventBuffer(0)
         delta_t = time - self.time
+        # TODO: Switched self.shape[0]=x
         for x in range(0, self.shape[1], 1):
             for y in range(0, self.shape[0], 1):
                 itdt = preprocessed_img[y, x]

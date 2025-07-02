@@ -19,6 +19,9 @@ dependencies = [
     "mathutils>=3.3.0",
     "omegaconf>=2.3.0",
     "ipykernel>=6.29.5",
+    "ipympl>=0.9.7",
+    "laspy>=2.5.4",
+    "seaborn>=0.13.2",
 ]
 
 [tool.uv.workspace]

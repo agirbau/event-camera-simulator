@@ -1,14 +1,37 @@
 log_level: INFO
+mode: event_only # video_only | event_only | full
 render:
-  steps: 100
-  frame_delay: 1000 
-  scene_image: scene_image.png
-  event_file: event_cube.dat
+  steps: 30
+  fps: 30 # time=steps/fps => frame_delay=1/fps
+  
+  out: out/winterthur
+  blender_file: scene_city_winterthur.blend
+  video_file: scene_city_winterthur.avi
+
+  event_file: events.dat
   event_video_file: events.avi
-  video_file: scene.avi
-  blender_file: scene.blend
-  out: temp
-  input: data
-  noise_pos: noise_pos_161lux.npy
-  noise_neg: noise_neg_161lux.npy
-  texture: img/CheeseTextureImg.png
+
+objects:
+- name: 'dji_mavic'
+  asset: out/winterthur/assets/models/dji-mavic-3/dji-mavic-3-classic-drone_2K.blend
+  rotation:   [  0,   0, 0]
+  position:   [-380,-296,  80]
+  velocity:   [  0,   1,   0]
+
+event_camera:
+  sensor_size: 35
+  focal_length: 35
+  resolution: [ 640, 360]
+  rotation:   [  90,   0, -25]
+  position:   [-400,-300,  5]
+  velocity:   [  1,   1,   0]
+  noise_pos: data/noise_pos_161lux.npy
+  noise_neg: data/noise_neg_161lux.npy
+
+camera:
+  sensor_size: 35
+  focal_length: 35
+  resolution: [ 640, 360]
+  rotation:   [  90,   0, -25]
+  position:   [-400,-300,  5]
+  velocity:   [  1,   1,   0]

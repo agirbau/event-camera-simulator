@@ -119,8 +119,8 @@ class DatFile():
         pol = data[1::2] & pol_mask
         pol = pol >> pol_shift
         if len(ts) > 0:
-            self.logger.debug("First Event: ", ts[0], " us")
-            self.logger.debug("Last Event: ", ts[-1], " us")
-            self.logger.debug("Number of Events: ", ts.shape[0])
+            self.logger.debug(f"First Event: {ts[0]} us")
+            self.logger.debug(f"Last Event: {ts[-1]} us")
+            self.logger.debug(f"Number of Events: {ts.shape[0]}")
 
         return ts, x, y, pol

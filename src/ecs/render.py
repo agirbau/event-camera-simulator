@@ -6,6 +6,7 @@ from tqdm.auto import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
 from ecs import BlenderScene
+from ecs import SceneVideoOnly, SceneEventOnly
 from ecs.logger import ECSLogHandler
 
 root = logging.getLogger()
@@ -25,7 +26,14 @@ def main():
         log.setLevel(getattr(logging, cfg.log_level))
     log.info('Start')
 
-    scene = BlenderScene(cfg)
+    if cfg.mode == 'event_only':
+        scene = SceneEventOnly(cfg)
+    if cfg.mode == 'video_only':
+        scene = SceneVideoOnly(cfg)
+    if cfg.mode == 'full':
+        scene = BlenderScene(cfg)
+
+    # scene = BlenderScene(cfg)
 
     with logging_redirect_tqdm():
         progress_bar = tqdm(total=cfg.render.steps)
@@ -38,4 +46,15 @@ def main():
             scene.render(p)
         scene.complete()
 
-    log.info('Done')
+
+# TODO: BLENDER: Define Scene (Everything that is static)
+# TODO: BLENDER: Define Lighting
+
+# TODO: PIPELINE: Add Camera
+# TODO: PIPELINE: Add Event-Camera
+# TODO: PIPELINE: Add LiDAR
+# TODO: Config Sensor Positions
+# TODO: 
+
+# TODO: Config Movement (Start Location, Heading, Speed)
+#
