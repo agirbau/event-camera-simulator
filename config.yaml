@@ -1,37 +1,45 @@
 log_level: INFO
-mode: event_only # video_only | event_only | full
+mode: event_only # event_only / video_only / full
 render:
-  steps: 30
-  fps: 30 # time=steps/fps => frame_delay=1/fps
-  
-  out: out/winterthur
-  blender_file: scene_city_winterthur.blend
-  video_file: scene_city_winterthur.avi
-
+  steps: 150
+  fps: 30
+  out: out/cube_1
+  blender_file: /Users/agirbau/Desktop/work/Blender/Scenes/cube_1.blend
+  video_file: cube_1_rgb.avi
   event_file: events.dat
   event_video_file: events.avi
-
-objects:
-- name: 'dji_mavic'
-  asset: out/winterthur/assets/models/dji-mavic-3/dji-mavic-3-classic-drone_2K.blend
-  rotation:   [  0,   0, 0]
-  position:   [-380,-296,  80]
-  velocity:   [  0,   1,   0]
-
-event_camera:
-  sensor_size: 35
-  focal_length: 35
-  resolution: [ 640, 360]
-  rotation:   [  90,   0, -25]
-  position:   [-400,-300,  5]
-  velocity:   [  1,   1,   0]
-  noise_pos: data/noise_pos_161lux.npy
-  noise_neg: data/noise_neg_161lux.npy
-
 camera:
   sensor_size: 35
   focal_length: 35
-  resolution: [ 640, 360]
-  rotation:   [  90,   0, -25]
-  position:   [-400,-300,  5]
-  velocity:   [  1,   1,   0]
+  resolution:
+  - 480
+  - 320
+  position:
+  - 20.0
+  - 0.0
+  - 2.0
+  rotation: &id001
+  - 0.0
+  - 90.00000250447816
+  - 0.0
+  velocity:
+  - 0
+  - 0
+  - 0
+event_camera:
+  sensor_size: 35
+  focal_length: 35
+  resolution:
+  - 480
+  - 320
+  position:
+  - 20.0
+  - 0.0
+  - 2.0
+  rotation: *id001
+  velocity:
+  - 0
+  - 0
+  - 0
+  noise_pos: data/noise_pos_161lux.npy
+  noise_neg: data/noise_neg_161lux.npy

@@ -11,9 +11,9 @@ class SceneEventOnly():
 
         self.scene = self.load_blend_file()
         self.camera = BlenderCamera(cfg)
-        self.lidar = BlenderLiDAR(cfg)
+        #self.lidar = BlenderLiDAR(cfg)
         self.dvs = BlenderDVSCamera(cfg)
-        self.mavic = BlenderObject(cfg, 'dji_mavic', 'DJI Mavic 3 Classic Drone')
+        #self.mavic = BlenderObject(cfg, 'dji_mavic', 'DJI Mavic 3 Classic Drone')
 
         self.init_render()
         self.save()
@@ -49,8 +49,9 @@ class SceneEventOnly():
     def render(self, step=0):
         self.logger.debug(f"Render Frame: {step}/{self.cfg.render.steps}")
 
+        bpy.context.scene.frame_set(step)
         self.dvs.update_position(step)
-        self.mavic.update_position(step)
+        #self.mavic.update_position(step)
         self.camera.update_position(step)
         # self.lidar.update_position(step)
 

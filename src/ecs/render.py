@@ -58,3 +58,6 @@ def main():
 
 # TODO: Config Movement (Start Location, Heading, Speed)
 #
+
+if __name__ == "__main__":
+    main()
